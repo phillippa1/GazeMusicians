@@ -19,3 +19,5 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class     camp.visual.eyedid.libgaze.callbacks.JNICallbackDispatcher                { *; }
