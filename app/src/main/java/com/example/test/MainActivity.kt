@@ -36,6 +36,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.test.interaction.InteractionViewModel
 
 
+
+
 // ToDo- Songs need to be moved down
 // ToDo- A switch for changing the gaze interaction methods
 // Documentation- there is a calibration function that starts the user calibration
@@ -91,16 +93,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
-
-
-@Composable
-fun MusicPage(
-    navController: NavController,
-    songNumber: Int,
-    interactionViewModel: InteractionViewModel
-) {
-    // later: use interactionViewModel.interactionMode
 }
 
 

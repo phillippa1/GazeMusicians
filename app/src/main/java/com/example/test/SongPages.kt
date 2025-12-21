@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.test.interaction.InteractionViewModel
 
 // ToDo- Make the next button and previous button bigger
 // ToDo- move the next and prev button about so that you can see them better
@@ -39,7 +40,11 @@ import androidx.navigation.NavController
 const val MAX_PAGES_PER_SONG = 3
 
 @Composable
-fun MusicPage(navController: NavController, songNumber: Int) {
+fun MusicPage(
+    navController: NavController,
+    songNumber: Int,
+    interactionViewModel: InteractionViewModel // just pass it for now
+) {
     // Gets the song name from the map
     val songName = songMap.entries.find { it.value == songNumber }?.key ?: "Unknown Song"
 
