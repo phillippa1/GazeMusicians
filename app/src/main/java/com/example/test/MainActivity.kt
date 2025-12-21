@@ -32,6 +32,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.test.ui.theme.TestTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.test.interaction.InteractionViewModel
 
 
 // ToDo- Songs need to be moved down
@@ -58,26 +60,55 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
             TestTheme {
+                val interactionViewModel: InteractionViewModel = viewModel()
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "songList") {
+
+                NavHost(
+                    navController = navController,
+                    startDestination = "songList"
+                ) {
                     composable("songList") {
-                        SongListScreen(navController = navController)
+                        SongListScreen(
+                            navController = navController,
+                            interactionViewModel = interactionViewModel
+                        )
                     }
-                    // Route to each song
+
                     composable("song/{songNumber}") { backStackEntry ->
-                        val songNumber = backStackEntry.arguments?.getString("songNumber")?.toIntOrNull() ?: 1
-                        MusicPage(navController = navController, songNumber = songNumber)
+                        val songNumber =
+                            backStackEntry.arguments?.getString("songNumber")?.toIntOrNull() ?: 1
+
+                        MusicPage(
+                            navController = navController,
+                            songNumber = songNumber,
+                            interactionViewModel = interactionViewModel
+                        )
                     }
-                }  // Added: Closing brace for NavHost
-            }  // Added: Closing brace for TestTheme
-        }  // Added: Closing brace for setContent
+                }
+            }
+        }
     }
 }
 
+
 @Composable
-fun SongListScreen(navController: NavController) {
+fun MusicPage(
+    navController: NavController,
+    songNumber: Int,
+    interactionViewModel: InteractionViewModel
+) {
+    // later: use interactionViewModel.interactionMode
+}
+
+
+@Composable
+fun SongListScreen(
+    navController: NavController,
+    interactionViewModel: InteractionViewModel
+) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
             modifier = Modifier
