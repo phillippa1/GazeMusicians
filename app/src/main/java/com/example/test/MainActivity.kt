@@ -36,7 +36,7 @@ import com.example.test.ui.theme.TestTheme
 
 // ToDo- Songs need to be moved down
 // ToDo- A switch for changing the gaze interaction methods
-// Documentation- there is a calibration function that starts the user callibration
+// Documentation- there is a calibration function that starts the user calibration
 
 
 // Load Inter font
