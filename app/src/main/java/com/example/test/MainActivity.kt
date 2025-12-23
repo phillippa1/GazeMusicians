@@ -233,7 +233,6 @@ class MainActivity : ComponentActivity() {
             blinkInfo: BlinkInfo,
             userStatusInfo: UserStatusInfo
         ) {
-            // For newer versions, use direct access to x and y
             Log.d("Eyedid", "Gaze received: x=${gazeInfo.x}, y=${gazeInfo.y}")
             gazeViewModel.updateGaze(gazeInfo.x, gazeInfo.y)
         }
