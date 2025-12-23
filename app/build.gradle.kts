@@ -65,7 +65,5 @@ dependencies {
     //noinspection UseTomlInstead
     implementation("androidx.navigation:navigation-compose:2.9.6")
     // What is the actual version??
-    implementation("camp.visual.eyedid.android.gazetracker:eyedid-gazetracker:1.0.0-beta4")
-
-
+    implementation("camp.visual.eyedid.android.gazetracker:eyedid-gazetracker:latest.release")
 }

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.test.interaction.InteractionViewModel
+import com.example.test.interaction.InteractionMode
 
 // ToDo- Make the next button and previous button bigger
 // ToDo- move the next and prev button about so that you can see them better
@@ -89,21 +90,51 @@ fun MusicPage(
         NavigationButton(
             text = "Previous",
             modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
-            enabled = hasPrevious,  // Disabled if no previous page
+            enabled = hasPrevious,
             onClick = {
-                if (hasPrevious) currentPage--
+                when (interactionViewModel.interactionMode) {
+                    InteractionMode.TOUCH -> {
+                        if (hasPrevious) currentPage--
+                    }
+
+                    InteractionMode.DWELL -> {
+                        // TEMPORARY: behave like touch
+                        if (hasPrevious) currentPage--
+                    }
+
+                    InteractionMode.GESTURE -> {
+                        // TEMPORARY: behave like touch
+                        if (hasPrevious) currentPage--
+                    }
+                }
             }
         )
+
 
         // Bottom right: Next button
         NavigationButton(
             text = "Next",
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-            enabled = hasNext,  // Disabled if no next page
+            enabled = hasNext,
             onClick = {
-                if (hasNext) currentPage++
+                when (interactionViewModel.interactionMode) {
+                    InteractionMode.TOUCH -> {
+                        if (hasNext) currentPage++
+                    }
+
+                    InteractionMode.DWELL -> {
+                        // TEMPORARY: behave like touch
+                        if (hasNext) currentPage++
+                    }
+
+                    InteractionMode.GESTURE -> {
+                        // TEMPORARY: behave like touch
+                        if (hasNext) currentPage++
+                    }
+                }
             }
         )
+
     }
 }
 
