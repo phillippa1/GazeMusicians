@@ -50,7 +50,6 @@ import camp.visual.eyedid.gazetracker.metrics.UserStatusInfo
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import camp.visual.eyedid.gazetracker.constant.GazeTrackerOptions
-import kotlinx.coroutines.delay
 
 // Fonts & Data
 val InterFontFamily = FontFamily(
@@ -161,7 +160,7 @@ class MainActivity : ComponentActivity() {
             gazeTracker?.setStatusCallback(statusCallback)
             gazeTracker?.setCalibrationCallback(calibrationCallback)
 
-            // Start tracking (calibration will start in onStarted callback)
+            // Start tracking (calibration starts in onStarted callback)
             gazeTracker?.startTracking()
             Log.d("Eyedid", "Init success, tracking started")
         } else {
@@ -224,6 +223,8 @@ class MainActivity : ComponentActivity() {
     }
 
     // TrackingCallback - receives gaze data
+    // Initialises the variables from the documentation
+    // All of the data needed for recording data
     private val trackingCallback = object : TrackingCallback {
         override fun onMetrics(
             timestamp: Long,
@@ -263,6 +264,7 @@ fun CalibrationOverlay(
             val yDp = with(density) { calibrationPoint.second.toDp() }
 
             // Draw calibration point (centered on the target position)
+            // Will need to change this!  20dp sort of works but it is going off the screen...
             Box(
                 modifier = Modifier
                     .offset(
