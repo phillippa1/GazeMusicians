@@ -29,13 +29,8 @@ import androidx.navigation.NavController
 import com.example.test.interaction.InteractionViewModel
 import com.example.test.interaction.InteractionMode
 
-// ToDo- Make the next button and previous button bigger
-// ToDo- move the next and prev button about so that you can see them better
-// ToDo- Move the back button as well
-// ToDo- Think about the music sheet size
-
 // ToDo- Obviously add the music sheets in and buy the book
-// ToDo- Obviously get it working with eyelure
+// ToDo- Obviously get it working with eye tracking
 
 // For now saying there are 3 pages per song
 const val MAX_PAGES_PER_SONG = 3
@@ -44,7 +39,7 @@ const val MAX_PAGES_PER_SONG = 3
 fun MusicPage(
     navController: NavController,
     songNumber: Int,
-    interactionViewModel: InteractionViewModel // just pass it for now
+    interactionViewModel: InteractionViewModel
 ) {
     // Gets the song name from the map
     val songName = songMap.entries.find { it.value == songNumber }?.key ?: "Unknown Song"
@@ -52,7 +47,7 @@ fun MusicPage(
     // State for the current page (starts at one for each song)
     var currentPage by remember { mutableStateOf(1) }
 
-    // Calculate is previous and next are available
+    // Calculate if previous and next are available
     val hasPrevious = currentPage > 1
     val hasNext = currentPage < MAX_PAGES_PER_SONG
 
@@ -64,12 +59,12 @@ fun MusicPage(
             onClick = { navController.popBackStack() }
         )
 
-        // Center of the music the box
+        // Center - the music sheet box
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .fillMaxWidth(0.8f)
-                .fillMaxHeight(0.6f),
+                .fillMaxWidth(0.9f)  // Slightly smaller to avoid button overlap
+                .fillMaxHeight(0.75f),  // Slightly smaller to avoid button overlap
             contentAlignment = Alignment.Center
         ) {
             // Gray placeholder
@@ -86,7 +81,7 @@ fun MusicPage(
             }
         }
 
-        // Bottom left: Previous button
+        // Bottom left: Previous button (made bigger)
         NavigationButton(
             text = "Previous",
             modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
@@ -110,8 +105,7 @@ fun MusicPage(
             }
         )
 
-
-        // Bottom right: Next button
+        // Bottom right: Next button (made bigger now)
         NavigationButton(
             text = "Next",
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
@@ -134,31 +128,35 @@ fun MusicPage(
                 }
             }
         )
-
     }
 }
 
 @Composable
-fun NavigationButton(text: String, modifier: Modifier = Modifier, enabled: Boolean = true, onClick: () -> Unit) {
+fun NavigationButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
     OutlinedButton(
         onClick = onClick,
         modifier = modifier
-            .width(120.dp)
-            .height(60.dp),
+            .width(160.dp)  // Increased from 120.dp to 160.dp
+            .height(80.dp),  // Increased from 60.dp to 80.dp
         shape = RoundedCornerShape(20.dp),
         border = BorderStroke(1.dp, Color.Black),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = if (enabled) Color.White else Color.Gray,  // Gray out if disabled
+            containerColor = if (enabled) Color.White else Color.Gray,
             contentColor = if (enabled) Color.Black else Color.DarkGray
         ),
-        enabled = enabled  // Disables interaction if false
+        enabled = enabled
     ) {
         Text(
             text = text,
             style = TextStyle(
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp
+                fontSize = 20.sp  // Increased from 18.sp to 20.sp
             )
         )
     }

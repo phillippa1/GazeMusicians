@@ -50,6 +50,7 @@ import camp.visual.eyedid.gazetracker.metrics.UserStatusInfo
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import camp.visual.eyedid.gazetracker.constant.GazeTrackerOptions
+import kotlinx.coroutines.delay
 
 // Fonts & Data
 val InterFontFamily = FontFamily(
@@ -160,7 +161,7 @@ class MainActivity : ComponentActivity() {
             gazeTracker?.setStatusCallback(statusCallback)
             gazeTracker?.setCalibrationCallback(calibrationCallback)
 
-            // Start tracking (calibration starts in onStarted callback)
+            // Start tracking (calibration will start in onStarted callback)
             gazeTracker?.startTracking()
             Log.d("Eyedid", "Init success, tracking started")
         } else {
@@ -173,16 +174,18 @@ class MainActivity : ComponentActivity() {
         override fun onStarted() {
             Log.d("Eyedid", "Tracking started, starting calibration...")
 
+            // Add 50 pixel margin on all sides
+            val margin = 100f
             // Get screen dimensions for calibration region
             val display = windowManager.defaultDisplay
             val width = display.width.toFloat()
             val height = display.height.toFloat()
 
-            // Start 5-point calibration across the full screen
+            // Start 5-point calibration with margin
             gazeTracker?.startCalibration(
                 CalibrationModeType.FIVE_POINT,
                 AccuracyCriteria.DEFAULT,
-                0f, 0f, width, height
+                margin, margin, width - margin, height - margin  // Add margin to the calibration region
             )
         }
 
@@ -223,8 +226,6 @@ class MainActivity : ComponentActivity() {
     }
 
     // TrackingCallback - receives gaze data
-    // Initialises the variables from the documentation
-    // All of the data needed for recording data
     private val trackingCallback = object : TrackingCallback {
         override fun onMetrics(
             timestamp: Long,
@@ -233,6 +234,7 @@ class MainActivity : ComponentActivity() {
             blinkInfo: BlinkInfo,
             userStatusInfo: UserStatusInfo
         ) {
+            // For newer versions, use direct access to x and y
             Log.d("Eyedid", "Gaze received: x=${gazeInfo.x}, y=${gazeInfo.y}")
             gazeViewModel.updateGaze(gazeInfo.x, gazeInfo.y)
         }
@@ -251,6 +253,7 @@ fun CalibrationOverlay(
     progress: Float
 ) {
     val density = LocalDensity.current
+    val windowInfo = LocalWindowInfo.current
 
     Box(
         modifier = Modifier
@@ -258,17 +261,22 @@ fun CalibrationOverlay(
             .background(Color.Black.copy(alpha = 0.7f))
     ) {
         if (calibrationPoint != null) {
+            // Get screen dimensions
+            val screenWidthDp = with(density) { windowInfo.containerSize.width.toDp() }
+            val screenHeightDp = with(density) { windowInfo.containerSize.height.toDp() }
+
             // Convert pixel coordinates to Dp
             val xDp = with(density) { calibrationPoint.first.toDp() }
             val yDp = with(density) { calibrationPoint.second.toDp() }
 
             // Draw calibration point (centered on the target position)
-            // Will need to change this!  20dp sort of works but it is going off the screen...
             Box(
                 modifier = Modifier
                     .offset(
-                        x = xDp - 20.dp,  // Offset by half the size to center it
-                        y = yDp - 20.dp
+                        // Why is the top left dot too far over but all the rest change??
+                        // How is this possible
+                        x = xDp - 20.dp,  // Center it, then add 20dp padding
+                        y = yDp - 20.dp   // Center it, then add 20dp padding
                     )
                     .size(40.dp)
                     .background(Color.Red, CircleShape)
