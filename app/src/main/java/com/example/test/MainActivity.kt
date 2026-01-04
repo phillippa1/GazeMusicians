@@ -36,6 +36,7 @@ import camp.visual.eyedid.gazetracker.callback.CalibrationCallback
 import camp.visual.eyedid.gazetracker.constant.CalibrationModeType
 import camp.visual.eyedid.gazetracker.constant.AccuracyCriteria
 import com.example.test.gaze.GazeViewModel
+import com.example.test.gaze.GestureViewModel
 import com.example.test.interaction.InteractionMode
 import com.example.test.interaction.InteractionViewModel
 import com.example.test.ui.theme.TestTheme
@@ -50,9 +51,10 @@ import camp.visual.eyedid.gazetracker.metrics.UserStatusInfo
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import camp.visual.eyedid.gazetracker.constant.GazeTrackerOptions
-import kotlinx.coroutines.delay
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.platform.LocalContext
 
-// Fonts & Data
 val InterFontFamily = FontFamily(
     Font(R.font.inter_regular, FontWeight.Normal),
     Font(R.font.inter_regular, FontWeight.SemiBold)
@@ -69,12 +71,17 @@ val songMap = mapOf(
 class MainActivity : ComponentActivity() {
 
     private lateinit var gazeViewModel: GazeViewModel
+    private lateinit var gestureViewModel: GestureViewModel
     private var gazeTracker: GazeTracker? = null
 
-    // State for calibration UI
     private val _calibrationPoint = mutableStateOf<Pair<Float, Float>?>(null)
     private val _calibrationProgress = mutableStateOf(0f)
     private val _isCalibrating = mutableStateOf(false)
+
+    // Track face detection for recalibration
+    private var faceMissingCount = 0
+    private val faceMissingThreshold = 60  // ~2 seconds at 30fps
+    private var needsRecalibration = false
 
     val calibrationPoint: State<Pair<Float, Float>?> = _calibrationPoint
     val calibrationProgress: State<Float> = _calibrationProgress
@@ -96,6 +103,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TestTheme {
                 gazeViewModel = viewModel()
+                gestureViewModel = viewModel()
                 val interactionViewModel: InteractionViewModel = viewModel()
                 val navController = rememberNavController()
 
@@ -105,18 +113,18 @@ class MainActivity : ComponentActivity() {
                             SongListScreen(
                                 navController = navController,
                                 interactionViewModel = interactionViewModel,
-                                gazeViewModel = gazeViewModel
+                                gazeViewModel = gazeViewModel,
+                                onRecalibrate = { triggerRecalibration() }
                             )
                         }
 
                         composable("song/{songNumber}") { backStackEntry ->
                             val songNumber =
                                 backStackEntry.arguments?.getString("songNumber")?.toIntOrNull() ?: 1
-                            MusicPage(navController, songNumber, interactionViewModel)
+                            MusicPage(navController, songNumber, interactionViewModel, gazeViewModel, gestureViewModel)
                         }
                     }
 
-                    // Show calibration UI on top of everything
                     if (isCalibrating.value) {
                         CalibrationOverlay(
                             calibrationPoint = calibrationPoint.value,
@@ -142,7 +150,13 @@ class MainActivity : ComponentActivity() {
 
     private fun initGazeTracker() {
         val licenseKey = "dev_yku4lt1xjovb7gzak23tehnt3qvlnq1fzn84jsyy"
-        val options = GazeTrackerOptions.Builder().build()
+
+        // OPTIMIZED for straight-on phone use
+        val options = GazeTrackerOptions.Builder()
+            .setUseBlink(true)          // Enable blink detection
+            .setUseGazeFilter(true)     // Smooths jittery gaze (helps with straight-on angle!)
+            .setUseUserStatus(false)    // Disable user status (not needed)
+            .build()
 
         GazeTracker.initGazeTracker(
             applicationContext,
@@ -155,13 +169,9 @@ class MainActivity : ComponentActivity() {
     private val initializationCallback = InitializationCallback { tracker, error ->
         if (tracker != null) {
             gazeTracker = tracker
-
-            // Set all callbacks
             gazeTracker?.setTrackingCallback(trackingCallback)
             gazeTracker?.setStatusCallback(statusCallback)
             gazeTracker?.setCalibrationCallback(calibrationCallback)
-
-            // Start tracking (calibration will start in onStarted callback)
             gazeTracker?.startTracking()
             Log.d("Eyedid", "Init success, tracking started")
         } else {
@@ -169,23 +179,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // StatusCallback - calibration starts here after tracking starts
     private val statusCallback = object : StatusCallback {
         override fun onStarted() {
             Log.d("Eyedid", "Tracking started, starting calibration...")
 
-            // Add 50 pixel margin on all sides
             val margin = 100f
-            // Get screen dimensions for calibration region
             val display = windowManager.defaultDisplay
             val width = display.width.toFloat()
             val height = display.height.toFloat()
 
-            // Start 5-point calibration with margin
             gazeTracker?.startCalibration(
-                CalibrationModeType.FIVE_POINT,
-                AccuracyCriteria.DEFAULT,
-                margin, margin, width - margin, height - margin  // Add margin to the calibration region
+                CalibrationModeType.FIVE_POINT,  // Use 5-point calibration
+                AccuracyCriteria.LOW,  // More forgiving for straight-on phone angle
+                margin, margin, width - margin, height - margin
             )
         }
 
@@ -194,7 +200,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // CalibrationCallback - handles the calibration UI
     private val calibrationCallback = object : CalibrationCallback {
         override fun onCalibrationProgress(progress: Float) {
             _calibrationProgress.value = progress
@@ -206,7 +211,6 @@ class MainActivity : ComponentActivity() {
             _calibrationPoint.value = Pair(x, y)
             Log.d("Eyedid", "Next calibration point: ($x, $y)")
 
-            // Wait 1 second for user to focus, then start collecting samples
             android.os.Handler(mainLooper).postDelayed({
                 gazeTracker?.startCollectSamples()
             }, 1000)
@@ -225,8 +229,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // TrackingCallback - receives gaze data
     private val trackingCallback = object : TrackingCallback {
+        private var wasBlinking = false
+
         override fun onMetrics(
             timestamp: Long,
             gazeInfo: GazeInfo,
@@ -234,18 +239,36 @@ class MainActivity : ComponentActivity() {
             blinkInfo: BlinkInfo,
             userStatusInfo: UserStatusInfo
         ) {
-            // For newer versions, use direct access to x and y
-            Log.d("Eyedid", "Gaze received: x=${gazeInfo.x}, y=${gazeInfo.y}")
             gazeViewModel.updateGaze(gazeInfo.x, gazeInfo.y)
+
+            // Track blinks - detect blink events (transition from not blinking to blinking)
+            val isBlinkingNow = blinkInfo.isBlink
+            if (isBlinkingNow != wasBlinking) {
+                gestureViewModel.updateBlink(isBlinkingNow, timestamp)
+            }
+            wasBlinking = isBlinkingNow
         }
 
         override fun onDrop(timestamp: Long) {
             Log.w("Eyedid", "Tracking dropped")
         }
     }
-}
 
-/* ---------- CALIBRATION UI ---------- */
+    fun triggerRecalibration() {
+        Log.d("MainActivity", "Recalibration triggered")
+        val margin = 100f
+        val display = windowManager.defaultDisplay
+        val width = display.width.toFloat()
+        val height = display.height.toFloat()
+
+        gazeTracker?.stopCalibration()
+        gazeTracker?.startCalibration(
+            CalibrationModeType.FIVE_POINT,  // Use 5-point calibration
+            AccuracyCriteria.LOW, // More forgiving for straight-on phone angle
+            margin, margin, width - margin, height - margin
+        )
+    }
+}
 
 @Composable
 fun CalibrationOverlay(
@@ -261,28 +284,16 @@ fun CalibrationOverlay(
             .background(Color.Black.copy(alpha = 0.7f))
     ) {
         if (calibrationPoint != null) {
-            // Get screen dimensions
-            val screenWidthDp = with(density) { windowInfo.containerSize.width.toDp() }
-            val screenHeightDp = with(density) { windowInfo.containerSize.height.toDp() }
-
-            // Convert pixel coordinates to Dp
             val xDp = with(density) { calibrationPoint.first.toDp() }
             val yDp = with(density) { calibrationPoint.second.toDp() }
 
-            // Draw calibration point (centered on the target position)
             Box(
                 modifier = Modifier
-                    .offset(
-                        // Why is the top left dot too far over but all the rest change??
-                        // How is this possible
-                        x = xDp - 20.dp,  // Center it, then add 20dp padding
-                        y = yDp - 20.dp   // Center it, then add 20dp padding
-                    )
+                    .offset(x = xDp - 20.dp, y = yDp - 20.dp)
                     .size(40.dp)
                     .background(Color.Red, CircleShape)
             )
 
-            // Show progress
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -313,13 +324,12 @@ fun CalibrationOverlay(
     }
 }
 
-/* ---------- UI ---------- */
-
 @Composable
 fun SongListScreen(
     navController: NavController,
     interactionViewModel: InteractionViewModel,
-    gazeViewModel: GazeViewModel
+    gazeViewModel: GazeViewModel,
+    onRecalibrate: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold { innerPadding ->
@@ -332,9 +342,36 @@ fun SongListScreen(
             ) {
                 InteractionModeSwitcher(interactionViewModel)
                 SongList(navController)
+                Spacer(modifier = Modifier.height(16.dp))
+                RecalibrateButton(onRecalibrate)
             }
         }
         GazeDebugOverlay(gazeViewModel)
+    }
+}
+
+@Composable
+fun RecalibrateButton(onRecalibrate: () -> Unit) {
+    OutlinedButton(
+        onClick = onRecalibrate,
+        modifier = Modifier
+            .width(250.dp)
+            .height(60.dp),
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(2.dp, Color(0xFF1976D2)), // Blue border
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = Color(0xFFE3F2FD), // Light blue background
+            contentColor = Color(0xFF1976D2) // Blue text
+        )
+    ) {
+        Text(
+            text = "Recalibrate",
+            style = TextStyle(
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp
+            )
+        )
     }
 }
 
@@ -378,15 +415,29 @@ fun SongButton(songName: String, onClick: () -> Unit) {
 @Composable
 fun InteractionModeSwitcher(interactionViewModel: InteractionViewModel) {
     val currentMode = interactionViewModel.interactionMode
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+    // Scrollable row to fit all 4 buttons horizontally
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(vertical = 8.dp)
+    ) {
         InteractionMode.entries.forEach { mode ->
             OutlinedButton(
                 onClick = { interactionViewModel.updateInteractionMode(mode) },
+                modifier = Modifier.height(45.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = if (mode == currentMode) Color.Black else Color.White,
                     contentColor = if (mode == currentMode) Color.White else Color.Black
                 )
-            ) { Text(mode.name) }
+            ) {
+                Text(
+                    text = mode.name,
+                    fontSize = 14.sp
+                )
+            }
         }
     }
 }
