@@ -67,7 +67,7 @@ fun MusicPage(
                 PursuitsButton(
                     text = "Previous",
                     buttonId = "previous",
-                    direction = PursuitsDirection.UP,  // Moves UP
+                    direction = PursuitsDirection.UP,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .fillMaxWidth()
@@ -75,6 +75,23 @@ fun MusicPage(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     enabled = hasPrevious,
                     gazeViewModel = gazeViewModel,
+                    interactionViewModel = interactionViewModel,
+                    onClick = { if (currentPage > 1) currentPage-- }
+                )
+            }
+            InteractionMode.GESTURE -> {
+                GestureButton(
+                    text = "Previous",
+                    buttonId = "previous",
+                    gestureDirection = GestureDirection.LEFT,  // Not used but required
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    enabled = hasPrevious,
+                    gazeViewModel = gazeViewModel,
+                    gestureViewModel = gestureViewModel,
                     interactionViewModel = interactionViewModel,
                     onClick = { if (currentPage > 1) currentPage-- }
                 )
@@ -147,7 +164,7 @@ fun MusicPage(
                 PursuitsButton(
                     text = "Next",
                     buttonId = "next",
-                    direction = PursuitsDirection.DOWN,  // Moves DOWN
+                    direction = PursuitsDirection.DOWN,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
@@ -155,6 +172,23 @@ fun MusicPage(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     enabled = hasNext,
                     gazeViewModel = gazeViewModel,
+                    interactionViewModel = interactionViewModel,
+                    onClick = { if (currentPage < MAX_PAGES_PER_SONG) currentPage++ }
+                )
+            }
+            InteractionMode.GESTURE -> {
+                GestureButton(
+                    text = "Next",
+                    buttonId = "next",
+                    gestureDirection = GestureDirection.RIGHT,  // Not used but required
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    enabled = hasNext,
+                    gazeViewModel = gazeViewModel,
+                    gestureViewModel = gestureViewModel,
                     interactionViewModel = interactionViewModel,
                     onClick = { if (currentPage < MAX_PAGES_PER_SONG) currentPage++ }
                 )

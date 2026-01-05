@@ -153,7 +153,7 @@ class MainActivity : ComponentActivity() {
 
         // OPTIMIZED for straight-on phone use
         val options = GazeTrackerOptions.Builder()
-            .setUseBlink(true)          // Enable blink detection
+            .setUseBlink(true)          // Enable blink detection (not used for gesture now, but keep enabled)
             .setUseGazeFilter(true)     // Smooths jittery gaze (helps with straight-on angle!)
             .setUseUserStatus(false)    // Disable user status (not needed)
             .build()
@@ -230,8 +230,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private val trackingCallback = object : TrackingCallback {
-        private var wasBlinking = false
-
         override fun onMetrics(
             timestamp: Long,
             gazeInfo: GazeInfo,
@@ -241,12 +239,11 @@ class MainActivity : ComponentActivity() {
         ) {
             gazeViewModel.updateGaze(gazeInfo.x, gazeInfo.y)
 
-            // Track blinks - detect blink events (transition from not blinking to blinking)
-            val isBlinkingNow = blinkInfo.isBlink
-            if (isBlinkingNow != wasBlinking) {
-                gestureViewModel.updateBlink(isBlinkingNow, timestamp)
-            }
-            wasBlinking = isBlinkingNow
+            // Track head tilts - pass roll (left/right tilt) from face info
+            gestureViewModel.updateHeadPose(
+                roll = faceInfo.roll,
+                timestamp = timestamp
+            )
         }
 
         override fun onDrop(timestamp: Long) {
