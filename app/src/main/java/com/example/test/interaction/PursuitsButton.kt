@@ -5,7 +5,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
@@ -34,8 +33,8 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 enum class PursuitsDirection {
-    LEFT,  // Next button goes left
-    RIGHT  // Previous button goes right
+    UP,    // Previous button moves up
+    DOWN   // Next button moves down
 }
 
 @Composable
@@ -57,23 +56,25 @@ fun PursuitsButton(
 
     val isThisButtonPursuing = interactionViewModel.isPursuitActive(buttonId)
 
-    val movementDistance = 400f
-    val trackingDuration = 1000L
-    val checkInterval = 50L
-    val maxConsecutiveLoss = 4
+    // Optimized for quick guitar page changes
+    val movementDistance = 200f  // Shorter movement distance
+    val trackingDuration = 600L  // Faster - 0.6 seconds instead of 1 second
+    val checkInterval = 40L      // Slightly faster check rate
+    val maxConsecutiveLoss = 5   // More tolerant of brief gaze loss
 
     val animationProgress = remember { Animatable(0f) }
-    val directionMultiplier = if (direction == PursuitsDirection.LEFT) -1f else 1f
-    val expansionPx = 250f
+    val directionMultiplier = if (direction == PursuitsDirection.UP) -1f else 1f
+    val expansionPx = 300f  // Larger hit area for easier tracking
 
+    // Calculate expanded bounds with VERTICAL movement
     val expandedBounds = remember(buttonBounds, animationProgress.value) {
         buttonBounds?.let {
-            val offsetX = animationProgress.value * movementDistance * directionMultiplier
+            val offsetY = animationProgress.value * movementDistance * directionMultiplier
             Rect(
-                left = it.left + offsetX - expansionPx,
-                top = it.top - expansionPx,
-                right = it.right + offsetX + expansionPx,
-                bottom = it.bottom + expansionPx
+                left = it.left - expansionPx,
+                top = it.top + offsetY - expansionPx,
+                right = it.right + expansionPx,
+                bottom = it.bottom + offsetY + expansionPx
             )
         }
     }
@@ -111,7 +112,7 @@ fun PursuitsButton(
             }
 
             if (shouldReset) {
-                animationProgress.animateTo(0f, animationSpec = tween(300, easing = FastOutSlowInEasing))
+                animationProgress.animateTo(0f, animationSpec = tween(200, easing = FastOutSlowInEasing))
                 interactionViewModel.clearActivePursuit()
                 trackingProgress = 0f
                 consecutiveGazeLoss = 0
@@ -155,44 +156,62 @@ fun PursuitsButton(
         }
     }
 
+    // Enhanced visual feedback with color progression
+    val backgroundColor = when {
+        !enabled -> Color.Gray
+        interactionViewModel.interactionMode == InteractionMode.PURSUITS && isThisButtonPursuing -> {
+            // Color transitions from light pink → bright pink as progress increases
+            val intensity = (trackingProgress * 255).toInt().coerceIn(0, 255)
+            Color(255, 200 - intensity / 2, 200 - intensity / 2)
+        }
+        interactionViewModel.interactionMode == InteractionMode.PURSUITS && isGazeInside && interactionViewModel.activePursuitButton == null -> {
+            Color(0xFFE1F5FE)  // Light blue when ready to start
+        }
+        else -> Color.White
+    }
+
     val borderColor = when {
         interactionViewModel.dwellingOn == buttonId -> Color.Blue
-        interactionViewModel.interactionMode == InteractionMode.PURSUITS && isThisButtonPursuing -> Color.Magenta
-        interactionViewModel.interactionMode == InteractionMode.PURSUITS && isGazeInside && interactionViewModel.activePursuitButton == null -> Color(0xFFFF69B4)
+        interactionViewModel.interactionMode == InteractionMode.PURSUITS && isThisButtonPursuing -> Color(0xFFFF1744)  // Bright red
+        interactionViewModel.interactionMode == InteractionMode.PURSUITS && isGazeInside && interactionViewModel.activePursuitButton == null -> Color(0xFF2196F3)  // Blue
         else -> Color.Black
     }
 
     val borderWidth = when {
         interactionViewModel.dwellingOn == buttonId -> 3.dp
-        interactionViewModel.interactionMode == InteractionMode.PURSUITS && (isThisButtonPursuing || (isGazeInside && interactionViewModel.activePursuitButton == null)) -> 4.dp
+        interactionViewModel.interactionMode == InteractionMode.PURSUITS && (isThisButtonPursuing || (isGazeInside && interactionViewModel.activePursuitButton == null)) -> 5.dp
         else -> 1.dp
     }
 
     Box(
         modifier = modifier.offset {
             IntOffset(
-                x = (animationProgress.value * movementDistance * directionMultiplier).roundToInt(),
-                y = 0
+                x = 0,  // No horizontal movement
+                y = (animationProgress.value * movementDistance * directionMultiplier).roundToInt()
             )
         }
     ) {
         OutlinedButton(
             onClick = { onClick() },
-            modifier = Modifier.width(160.dp).height(80.dp).onGloballyPositioned { buttonBounds = it.boundsInWindow() },
+            modifier = Modifier
+                .matchParentSize()  // Use full size from parent modifier
+                .onGloballyPositioned { buttonBounds = it.boundsInWindow() },
             shape = RoundedCornerShape(20.dp),
             border = BorderStroke(borderWidth, borderColor),
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = when {
-                    !enabled -> Color.Gray
-                    interactionViewModel.interactionMode == InteractionMode.PURSUITS && isThisButtonPursuing -> Color(0xFFFCE4EC)
-                    interactionViewModel.interactionMode == InteractionMode.PURSUITS && isGazeInside && interactionViewModel.activePursuitButton == null -> Color(0xFFF3E5F5)
-                    else -> Color.White
-                },
+                containerColor = backgroundColor,
                 contentColor = if (enabled) Color.Black else Color.DarkGray
             ),
             enabled = enabled
         ) {
-            Text(text, style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.SemiBold, fontSize = 20.sp))
+            Text(
+                text = text,
+                style = TextStyle(
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 24.sp  // Slightly larger for better visibility
+                )
+            )
         }
     }
 }

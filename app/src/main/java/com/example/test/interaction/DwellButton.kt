@@ -51,7 +51,6 @@ fun DwellButton(
                 expandedBounds.contains(Offset(gazePoint.x, gazePoint.y))
     }
 
-    // Update gaze state in InteractionViewModel
     LaunchedEffect(isGazeInside) {
         interactionViewModel.setGazeOnButton(buttonId, isGazeInside)
         if (isGazeInside && enabled && interactionViewModel.interactionMode == InteractionMode.DWELL) {
@@ -63,8 +62,7 @@ fun DwellButton(
         OutlinedButton(
             onClick = onClick,
             modifier = Modifier
-                .width(160.dp)
-                .height(80.dp)
+                .matchParentSize()  // ← Changed from .width(160.dp).height(80.dp)
                 .onGloballyPositioned { buttonBounds = it.boundsInWindow() },
             shape = RoundedCornerShape(20.dp),
             border = BorderStroke(
@@ -82,7 +80,7 @@ fun DwellButton(
                 style = TextStyle(
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 20.sp
+                    fontSize = 24.sp  // Increased from 20.sp for better visibility
                 )
             )
         }
