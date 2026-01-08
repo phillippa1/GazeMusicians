@@ -31,6 +31,10 @@ import android.util.Log
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 
+// Mum can't get it to work with her glasses- think about this
+// Maybe make it easier to select, if you look at the button OR you look down and tilt your head, maybe do edge cases, head down and moving to the side, she moved her head down when tryng to look at it
+
+
 @Composable
 fun GestureButton(
     text: String,
@@ -50,7 +54,7 @@ fun GestureButton(
 
     var isLookingAtThis by remember { mutableStateOf(false) }
 
-    // Large hitbox for easy targeting with full-width buttons
+    // Size of hitbox
     val expansionPx = 300f
 
     val expandedBounds = remember(buttonBounds) {
@@ -101,7 +105,7 @@ fun GestureButton(
                     }
                     gestureViewModel.setLookingAtTarget(buttonId, true)
 
-                    // Setup head tilt callback
+                    // Tilting head.
                     gestureViewModel.setHeadTiltCallback { targetId ->
                         if (targetId == buttonId) {
                             Log.d("GestureButton", "Head tilt activated $buttonId")
@@ -116,15 +120,15 @@ fun GestureButton(
                 }
             }
             InteractionMode.TOUCH -> {
-                // Touch handled by onClick below
+                // You can also use touch
             }
             InteractionMode.PURSUITS -> {
-                // Pursuits handled by PursuitsButton
+                // You can also use pursuits
             }
         }
     }
 
-    // Visual feedback
+    // Visual feedback-- maybe give like a 0.5 seconds when it's still selected to give people room for moving their eyes away from the target
     val showAsLooking = isGazeInside && interactionViewModel.interactionMode == InteractionMode.GESTURE
 
     val borderColor = when {

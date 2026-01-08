@@ -62,7 +62,7 @@ fun DwellButton(
         OutlinedButton(
             onClick = onClick,
             modifier = Modifier
-                .matchParentSize()  // ← Changed from .width(160.dp).height(80.dp)
+                .matchParentSize()  // Changed from .width(160.dp).height(80.dp)`
                 .onGloballyPositioned { buttonBounds = it.boundsInWindow() },
             shape = RoundedCornerShape(20.dp),
             border = BorderStroke(
@@ -80,11 +80,12 @@ fun DwellButton(
                 style = TextStyle(
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 24.sp  // Increased from 20.sp for better visibility
+                    fontSize = 24.sp  // Text size- might need to change when you change the buttons sizes
                 )
             )
         }
 
+        // Why did I put this in gesture button too?
         if (isDwelling && dwellProgress > 0f) {
             CircularProgressIndicator(
                 progress = dwellProgress,

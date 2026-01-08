@@ -149,7 +149,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initGazeTracker() {
-        val licenseKey = "dev_yku4lt1xjovb7gzak23tehnt3qvlnq1fzn84jsyy"
+        val licenseKey = "dev_exzr35pwtjk5bd6effx07bg0kx6m6ibmai1w403u"
 
         // OPTIMIZED for straight-on phone use
         val options = GazeTrackerOptions.Builder()
@@ -159,6 +159,7 @@ class MainActivity : ComponentActivity() {
             .build()
 
         GazeTracker.initGazeTracker(
+
             applicationContext,
             licenseKey,
             initializationCallback,
@@ -413,7 +414,7 @@ fun SongButton(songName: String, onClick: () -> Unit) {
 fun InteractionModeSwitcher(interactionViewModel: InteractionViewModel) {
     val currentMode = interactionViewModel.interactionMode
 
-    // Scrollable row to fit all 4 buttons horizontally
+    // Horizontal view for four buttons
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
