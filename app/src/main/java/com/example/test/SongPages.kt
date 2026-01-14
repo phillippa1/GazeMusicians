@@ -1,6 +1,7 @@
 package com.example.test
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -61,7 +64,7 @@ fun MusicPage(
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // ---- Previous button at the top ----
+        // Previous button at the top now
         when (currentMode) {
             InteractionMode.PURSUITS -> {
                 PursuitsButton(
@@ -83,7 +86,7 @@ fun MusicPage(
                 GestureButton(
                     text = "Previous",
                     buttonId = "previous",
-                    gestureDirection = GestureDirection.LEFT,  // Not used but required
+                    gestureDirection = GestureDirection.LEFT,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .fillMaxWidth()
@@ -113,52 +116,76 @@ fun MusicPage(
             }
         }
 
-        // ---- Music sheet placeholder with Back button centered ----
+        // Music sheet part
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .fillMaxWidth(0.9f)
-                .fillMaxHeight(0.6f),
+                .fillMaxWidth()
+                .fillMaxHeight(0.7f),
             contentAlignment = Alignment.Center
         ) {
-            Surface(
-                color = Color.LightGray,
-                modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    OutlinedButton(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier
-                            .width(220.dp)
-                            .height(120.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        border = BorderStroke(1.dp, Color.Black),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black
-                        )
+            // Music sheet for song one
+            if (songNumber == 1) {
+                val imageResource = when (currentPage) {
+                    1 -> R.drawable.song1_page1
+                    2 -> R.drawable.song1_page2
+                    3 -> R.drawable.song1_page3
+                    else -> R.drawable.song1_page1
+                }
+
+                Image(
+                    painter = painterResource(id = imageResource),
+                    contentDescription = "Music sheet for $songName, page $currentPage",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            } else {
+                // For other songs, show placeholder for now
+                Surface(
+                    color = Color.LightGray,
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .fillMaxHeight(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         Text(
-                            text = "Back",
-                            style = TextStyle(
-                                fontFamily = InterFontFamily,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 28.sp
-                            )
+                            text = "$songName - Page $currentPage of $MAX_PAGES_PER_SONG",
+                            style = TextStyle(color = Color.Black, fontSize = 20.sp)
                         )
                     }
-
-                    Text(
-                        text = "$songName - Page $currentPage of $MAX_PAGES_PER_SONG",
-                        style = TextStyle(color = Color.Black, fontSize = 20.sp),
-                        modifier = Modifier.padding(top = 140.dp)
-                    )
                 }
+            }
+
+            // Large invisible back button centered over the music
+            OutlinedButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)  // 60% of screen width
+                    .fillMaxHeight(0.5f), // 50% of center area height, might need to change this, see how it is when you use it
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(0.dp, Color.Transparent), // Invisible border
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = Color.Transparent, // Invisible background
+                    contentColor = Color.Transparent    // Invisible text
+                )
+            ) {
+                Text(
+                    text = "Back",
+                    style = TextStyle(
+                        fontFamily = InterFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 28.sp,
+                        color = Color.Transparent // Invisible text
+                    )
+                )
             }
         }
 
-        // ---- Next button at the bottom ----
+        // Next button (at bottom)
         when (currentMode) {
             InteractionMode.PURSUITS -> {
                 PursuitsButton(
@@ -180,7 +207,7 @@ fun MusicPage(
                 GestureButton(
                     text = "Next",
                     buttonId = "next",
-                    gestureDirection = GestureDirection.RIGHT,  // Not used but required
+                    gestureDirection = GestureDirection.RIGHT,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
