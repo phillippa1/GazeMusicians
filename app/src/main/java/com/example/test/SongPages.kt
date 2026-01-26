@@ -171,7 +171,7 @@ fun MusicPage(
                         painter = painterResource(id = imageResource),
                         contentDescription = "Music sheet for $songName, page $currentPage",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.FillBounds
                     )
                 }
                 2 -> {
@@ -186,7 +186,7 @@ fun MusicPage(
                         painter = painterResource(id = imageResource),
                         contentDescription = "Music sheet for $songName, page $currentPage",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.FillBounds
                     )
                 }
                 3 -> {
@@ -201,7 +201,7 @@ fun MusicPage(
                         painter = painterResource(id = imageResource),
                         contentDescription = "Music sheet for $songName, page $currentPage",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.FillBounds
                     )
                 }
                 4 -> {
@@ -216,7 +216,7 @@ fun MusicPage(
                         painter = painterResource(id = imageResource),
                         contentDescription = "Music sheet for $songName, page $currentPage",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.FillBounds
                     )
                 }
                 5 -> {
@@ -231,7 +231,7 @@ fun MusicPage(
                         painter = painterResource(id = imageResource),
                         contentDescription = "Music sheet for $songName, page $currentPage",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.FillBounds
                     )
                 }
                 else -> {
