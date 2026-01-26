@@ -40,6 +40,8 @@ import com.example.test.interaction.DwellButton
 import com.example.test.interaction.PursuitsButton
 import com.example.test.interaction.PursuitsDirection
 import android.util.Log
+import com.example.test.interaction.CombinationButton
+import com.example.test.interaction.HeadTiltButton
 
 const val MAX_PAGES_PER_SONG = 3
 
@@ -82,6 +84,38 @@ fun MusicPage(
                     onClick = { if (currentPage > 1) currentPage-- }
                 )
             }
+            InteractionMode.HEAD_TILT -> {
+                HeadTiltButton(
+                    text = "Previous",
+                    buttonId = "previous",
+                    tiltDirection = GestureViewModel.TiltDirection.LEFT, // Tilt LEFT for Previous
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    enabled = hasPrevious,
+                    gestureViewModel = gestureViewModel,
+                    interactionViewModel = interactionViewModel,
+                    onClick = { if (currentPage > 1) currentPage-- }
+                )
+            }
+            InteractionMode.COMBINATION -> {
+                CombinationButton(
+                    text = "Previous",
+                    buttonId = "previous",
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    enabled = hasPrevious,
+                    gazeViewModel = gazeViewModel,
+                    gestureViewModel = gestureViewModel,
+                    interactionViewModel = interactionViewModel,
+                    onClick = { if (currentPage > 1) currentPage-- }
+                )
+            }
             InteractionMode.GESTURE -> {
                 GestureButton(
                     text = "Previous",
@@ -94,7 +128,6 @@ fun MusicPage(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     enabled = hasPrevious,
                     gazeViewModel = gazeViewModel,
-                    gestureViewModel = gestureViewModel,
                     interactionViewModel = interactionViewModel,
                     onClick = { if (currentPage > 1) currentPage-- }
                 )
@@ -125,37 +158,100 @@ fun MusicPage(
             contentAlignment = Alignment.Center
         ) {
             // Music sheet for song one
-            if (songNumber == 1) {
-                val imageResource = when (currentPage) {
-                    1 -> R.drawable.song1_page1
-                    2 -> R.drawable.song1_page2
-                    3 -> R.drawable.song1_page3
-                    else -> R.drawable.song1_page1
-                }
+            when (songNumber) {
+                1 -> {
+                    val imageResource = when (currentPage) {
+                        1 -> R.drawable.song1_page1
+                        2 -> R.drawable.song1_page2
+                        3 -> R.drawable.song1_page3
+                        else -> R.drawable.song1_page1
+                    }
 
-                Image(
-                    painter = painterResource(id = imageResource),
-                    contentDescription = "Music sheet for $songName, page $currentPage",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-            } else {
-                // For other songs, show placeholder for now
-                Surface(
-                    color = Color.LightGray,
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .fillMaxHeight(),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
+                    Image(
+                        painter = painterResource(id = imageResource),
+                        contentDescription = "Music sheet for $songName, page $currentPage",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+                2 -> {
+                    val imageResource = when (currentPage) {
+                        1 -> R.drawable.song2_page2
+                        2 -> R.drawable.song2_page2
+                        3 -> R.drawable.song2_page3
+                        else -> R.drawable.song2_page1
+                    }
+
+                    Image(
+                        painter = painterResource(id = imageResource),
+                        contentDescription = "Music sheet for $songName, page $currentPage",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+                3 -> {
+                    val imageResource = when (currentPage) {
+                        1 -> R.drawable.song3_page1
+                        2 -> R.drawable.song3_page2
+                        3 -> R.drawable.song3_page3
+                        else -> R.drawable.song3_page1
+                    }
+
+                    Image(
+                        painter = painterResource(id = imageResource),
+                        contentDescription = "Music sheet for $songName, page $currentPage",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+                4 -> {
+                    val imageResource = when (currentPage) {
+                        1 -> R.drawable.song4_page1
+                        2 -> R.drawable.song4_page2
+                        3 -> R.drawable.song4_page3
+                        else -> R.drawable.song4_page1
+                    }
+
+                    Image(
+                        painter = painterResource(id = imageResource),
+                        contentDescription = "Music sheet for $songName, page $currentPage",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+                5 -> {
+                    val imageResource = when (currentPage) {
+                        1 -> R.drawable.song5_page1
+                        2 -> R.drawable.song5_page2
+                        3 -> R.drawable.song5_page3
+                        else -> R.drawable.song5_page1
+                    }
+
+                    Image(
+                        painter = painterResource(id = imageResource),
+                        contentDescription = "Music sheet for $songName, page $currentPage",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+                else -> {
+                    // For other songs, show placeholder for now
+                    Surface(
+                        color = Color.LightGray,
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .fillMaxHeight(),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text(
-                            text = "$songName - Page $currentPage of $MAX_PAGES_PER_SONG",
-                            style = TextStyle(color = Color.Black, fontSize = 20.sp)
-                        )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = "$songName - Page $currentPage of $MAX_PAGES_PER_SONG",
+                                style = TextStyle(color = Color.Black, fontSize = 20.sp)
+                            )
+                        }
                     }
                 }
             }
@@ -203,6 +299,38 @@ fun MusicPage(
                     onClick = { if (currentPage < MAX_PAGES_PER_SONG) currentPage++ }
                 )
             }
+            InteractionMode.HEAD_TILT -> {
+                HeadTiltButton(
+                    text = "Next",
+                    buttonId = "next",
+                    tiltDirection = GestureViewModel.TiltDirection.RIGHT,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    enabled = hasNext,
+                    gestureViewModel = gestureViewModel,
+                    interactionViewModel = interactionViewModel,
+                    onClick = { if (currentPage < MAX_PAGES_PER_SONG) currentPage++ }
+                )
+            }
+            InteractionMode.COMBINATION -> {
+                CombinationButton(
+                    text = "Next",
+                    buttonId = "next",
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    enabled = hasNext,
+                    gazeViewModel = gazeViewModel,
+                    gestureViewModel = gestureViewModel,
+                    interactionViewModel = interactionViewModel,
+                    onClick = { if (currentPage < MAX_PAGES_PER_SONG) currentPage++ }
+                )
+            }
             InteractionMode.GESTURE -> {
                 GestureButton(
                     text = "Next",
@@ -215,7 +343,6 @@ fun MusicPage(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     enabled = hasNext,
                     gazeViewModel = gazeViewModel,
-                    gestureViewModel = gestureViewModel,
                     interactionViewModel = interactionViewModel,
                     onClick = { if (currentPage < MAX_PAGES_PER_SONG) currentPage++ }
                 )

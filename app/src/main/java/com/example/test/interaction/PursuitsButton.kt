@@ -146,7 +146,8 @@ fun PursuitsButton(
                     }
                 }
             }
-            InteractionMode.TOUCH, InteractionMode.GESTURE -> {
+            InteractionMode.TOUCH, InteractionMode.GESTURE, InteractionMode.HEAD_TILT, InteractionMode.COMBINATION -> {
+                // For these modes, clear pursuit if active
                 if (isThisButtonPursuing) {
                     animationProgress.snapTo(0f)
                     interactionViewModel.clearActivePursuit()

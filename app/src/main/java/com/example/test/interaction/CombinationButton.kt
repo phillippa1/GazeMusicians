@@ -30,16 +30,15 @@ import com.example.test.gaze.GestureViewModel
 import android.util.Log
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import kotlinx.coroutines.delay
 
 @Composable
-fun GestureButton(
+fun CombinationButton(
     text: String,
     buttonId: String,
-    gestureDirection: GestureDirection,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     gazeViewModel: GazeViewModel,
+    gestureViewModel: GestureViewModel,
     interactionViewModel: InteractionViewModel,
     onClick: () -> Unit
 ) {
@@ -49,12 +48,8 @@ fun GestureButton(
     val dwellProgress = interactionViewModel.dwellProgress
 
     var isLookingAtThis by remember { mutableStateOf(false) }
-    var gazeStartTime by remember { mutableStateOf(0L) }
 
-    // Activation delay - just look for a brief moment
-    val activationDelay = 500L // 500ms of looking activates it
-
-    // Size of hitbox
+    // Large hitbox for easy targeting
     val expansionPx = 300f
 
     val expandedBounds = remember(buttonBounds) {
@@ -73,7 +68,7 @@ fun GestureButton(
         if (gazePoint == null || buttonBounds == null || !enabled) {
             false
         } else {
-            val boundsToCheck = if (interactionViewModel.interactionMode == InteractionMode.GESTURE) {
+            val boundsToCheck = if (interactionViewModel.interactionMode == InteractionMode.COMBINATION) {
                 expandedBounds ?: buttonBounds!!
             } else {
                 buttonBounds!!
@@ -82,45 +77,40 @@ fun GestureButton(
         }
     }
 
-    // Handle GESTURE mode - just look to activate
+    // Handle COMBINATION mode - look AND tilt head (any direction)
     LaunchedEffect(isGazeInside, interactionViewModel.interactionMode) {
-        if (interactionViewModel.interactionMode == InteractionMode.GESTURE) {
-            if (isGazeInside && enabled) {
-                if (!isLookingAtThis) {
-                    isLookingAtThis = true
-                    gazeStartTime = System.currentTimeMillis()
-                    Log.d("GestureButton", "Started looking at $buttonId - Keep looking to activate!")
-                }
+        val wasLookingAtThis = isLookingAtThis
+        isLookingAtThis = isGazeInside
 
-                // Wait for activation delay
-                while (isGazeInside && enabled) {
-                    delay(50)
-                    val lookDuration = System.currentTimeMillis() - gazeStartTime
-                    if (lookDuration >= activationDelay) {
-                        Log.d("GestureButton", "Gaze activated $buttonId")
+        if (interactionViewModel.interactionMode == InteractionMode.COMBINATION) {
+            if (isGazeInside && enabled) {
+                if (!wasLookingAtThis) {
+                    Log.d("CombinationButton", "Started looking at $buttonId - Tilt head to activate!")
+                }
+                gestureViewModel.setLookingAtTarget(buttonId, true)
+
+                // Setup head tilt callback - accepts ANY direction (original behavior)
+                gestureViewModel.setHeadTiltCallbackSimple { targetId ->
+                    if (targetId == buttonId) {
+                        Log.d("CombinationButton", "Head tilt activated $buttonId")
                         onClick()
-                        isLookingAtThis = false
-                        break
                     }
                 }
             } else {
-                if (isLookingAtThis) {
-                    Log.d("GestureButton", "Stopped looking at $buttonId")
-                    isLookingAtThis = false
+                if (wasLookingAtThis) {
+                    Log.d("CombinationButton", "Stopped looking at $buttonId")
+                    gestureViewModel.setLookingAtTarget(null, false)
                 }
             }
         }
     }
 
     // Visual feedback
-    val showAsLooking = isGazeInside && interactionViewModel.interactionMode == InteractionMode.GESTURE
-    val lookProgress = if (showAsLooking && isLookingAtThis) {
-        ((System.currentTimeMillis() - gazeStartTime).toFloat() / activationDelay).coerceIn(0f, 1f)
-    } else 0f
+    val showAsLooking = isGazeInside && interactionViewModel.interactionMode == InteractionMode.COMBINATION
 
     val borderColor = when {
         isDwelling -> Color.Blue
-        showAsLooking -> Color(0xFF4CAF50) // Green - looking
+        showAsLooking -> Color(0xFFFF9800) // Orange - ready for head tilt
         else -> Color.Black
     }
 
@@ -132,14 +122,14 @@ fun GestureButton(
 
     val backgroundColor = when {
         !enabled -> Color.Gray
-        showAsLooking -> Color(0xFFC8E6C9) // Light green
+        showAsLooking -> Color(0xFFFFE0B2) // Light orange
         else -> Color.White
     }
 
     Box(modifier = modifier) {
         OutlinedButton(
             onClick = {
-                Log.d("GestureButton", "Touch activated $buttonId")
+                Log.d("CombinationButton", "Touch activated $buttonId")
                 onClick()
             },
             modifier = Modifier
@@ -165,19 +155,6 @@ fun GestureButton(
             )
         }
 
-        // Show progress indicator when looking in GESTURE mode
-        if (showAsLooking && lookProgress > 0f) {
-            CircularProgressIndicator(
-                progress = lookProgress,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .width(50.dp)
-                    .height(50.dp),
-                color = Color.Green,
-                strokeWidth = 4.dp
-            )
-        }
-
         // Show circular progress indicator when dwelling
         if (isDwelling && dwellProgress > 0f) {
             CircularProgressIndicator(
@@ -191,9 +168,4 @@ fun GestureButton(
             )
         }
     }
-}
-
-enum class GestureDirection {
-    LEFT,
-    RIGHT
 }

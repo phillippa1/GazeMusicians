@@ -414,7 +414,17 @@ fun SongButton(songName: String, onClick: () -> Unit) {
 fun InteractionModeSwitcher(interactionViewModel: InteractionViewModel) {
     val currentMode = interactionViewModel.interactionMode
 
-    // Horizontal view for four buttons
+    // Map of internal mode names to display names
+    val displayNames = mapOf(
+        InteractionMode.DWELL to "DWELL",
+        InteractionMode.HEAD_TILT to "HEAD TILT",
+        InteractionMode.COMBINATION to "COMBINATION",
+        InteractionMode.GESTURE to "GESTURE",
+        InteractionMode.PURSUITS to "PURSUITS",
+        InteractionMode.TOUCH to "TOUCH"
+    )
+
+    // Horizontal view for all buttons
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
@@ -432,8 +442,8 @@ fun InteractionModeSwitcher(interactionViewModel: InteractionViewModel) {
                 )
             ) {
                 Text(
-                    text = mode.name,
-                    fontSize = 14.sp
+                    text = displayNames[mode] ?: mode.name,
+                    fontSize = 12.sp // Slightly smaller to fit "COMBINATION"
                 )
             }
         }

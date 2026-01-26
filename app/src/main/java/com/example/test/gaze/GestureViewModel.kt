@@ -8,26 +8,37 @@ import android.util.Log
 import kotlin.math.abs
 
 class GestureViewModel : ViewModel() {
-    // Head tilt tracking
+    // Shared state
     private var isLookingAtTarget = false
     private var currentTargetId: String? = null
-    private var headTiltCallback: ((String) -> Unit)? = null
 
-    // Track head tilt state
+    // Head tilt tracking
+    private var headTiltCallbackSimple: ((String) -> Unit)? = null
+
+    // NEW: Map of buttonId to (direction, callback) for HEAD_TILT mode
+    private val directionalCallbacks = mutableMapOf<String, Pair<TiltDirection, () -> Unit>>()
+
     private var baselineRoll: Float? = null
     private var tiltDetectionStartTime = 0L
     private var isTiltInProgress = false
-
-    // Head tilt parameters - MUCH MORE SENSITIVE
-    private val tiltThreshold = 8f       // Degrees - just 8° tilt (was 15°)
-    private val minTiltDuration = 150L   // 150ms minimum hold (was 200ms)
-    private val maxTiltDuration = 800L   // 800ms maximum (was 1000ms)
-    private val cooldownPeriod = 400L    // 400ms cooldown (was 500ms)
+    private val tiltThreshold = 8f
+    private val minTiltDuration = 150L
+    private val maxTiltDuration = 800L
+    private val tiltCooldownPeriod = 400L
     private var lastTiltTime = 0L
-
-    // Baseline calibration
-    private val baselineWindow = 30      // Track last 30 frames for baseline
+    private val baselineWindow = 30
     private val rollHistory = mutableListOf<Float>()
+
+    // Expose tilt state for UI
+    private val _isTiltingLeft = mutableStateOf(false)
+    private val _isTiltingRight = mutableStateOf(false)
+    val isTiltingLeft: Boolean get() = _isTiltingLeft.value
+    val isTiltingRight: Boolean get() = _isTiltingRight.value
+
+    enum class TiltDirection {
+        LEFT,
+        RIGHT
+    }
 
     fun updateHeadPose(roll: Float, timestamp: Long) {
         // Build baseline (neutral head position) from recent history
@@ -41,33 +52,53 @@ class GestureViewModel : ViewModel() {
             baselineRoll = rollHistory.sorted()[rollHistory.size / 2]
         }
 
-        // Only process tilts if looking at a target
-        if (!isLookingAtTarget || currentTargetId == null || baselineRoll == null) {
+        if (baselineRoll == null) {
             return
         }
 
         // Check for cooldown period
-        if (timestamp - lastTiltTime < cooldownPeriod) {
+        if (timestamp - lastTiltTime < tiltCooldownPeriod) {
             return
         }
 
-        val tiltAmount = abs(roll - baselineRoll!!)
+        val tiltAmount = roll - baselineRoll!!
+        val absTiltAmount = abs(tiltAmount)
+
+        // Update UI state for visual feedback
+        _isTiltingLeft.value = tiltAmount > tiltThreshold
+        _isTiltingRight.value = tiltAmount < -tiltThreshold
 
         // Detect tilt start
-        if (tiltAmount >= tiltThreshold && !isTiltInProgress) {
+        if (absTiltAmount >= tiltThreshold && !isTiltInProgress) {
             isTiltInProgress = true
             tiltDetectionStartTime = timestamp
-            Log.d("GestureViewModel", "Head tilt started: ${String.format("%.1f", tiltAmount)}° from baseline")
+            val direction = if (tiltAmount > 0) TiltDirection.LEFT else TiltDirection.RIGHT
+            Log.d("GestureViewModel", "Head tilt started: ${String.format("%.1f", tiltAmount)}° (${direction})")
         }
 
         // Detect tilt end (return to neutral)
-        if (tiltAmount < tiltThreshold && isTiltInProgress) {
+        if (absTiltAmount < tiltThreshold && isTiltInProgress) {
             val tiltDuration = timestamp - tiltDetectionStartTime
             isTiltInProgress = false
 
             if (tiltDuration >= minTiltDuration && tiltDuration <= maxTiltDuration) {
-                Log.d("GestureViewModel", "✓ HEAD TILT on $currentTargetId! Duration: $tiltDuration ms, Angle: ${String.format("%.1f", tiltAmount)}°")
-                headTiltCallback?.invoke(currentTargetId!!)
+                val direction = if (tiltAmount > 0) TiltDirection.LEFT else TiltDirection.RIGHT
+                Log.d("GestureViewModel", "✓ HEAD TILT detected! Direction: $direction")
+
+                // Call simple callback for COMBINATION mode
+                if (isLookingAtTarget && currentTargetId != null) {
+                    headTiltCallbackSimple?.invoke(currentTargetId!!)
+                }
+
+                // Call directional callbacks for HEAD_TILT mode
+                directionalCallbacks.forEach { (buttonId, pair) ->
+                    val (requiredDirection, callback) = pair
+                    if (direction == requiredDirection) {
+                        Log.d("GestureViewModel", "Calling callback for $buttonId")
+                        callback()
+                    }
+                }
+
                 lastTiltTime = timestamp
             } else {
                 Log.d("GestureViewModel", "Head tilt invalid duration: $tiltDuration ms (need 150-800ms)")
@@ -78,7 +109,7 @@ class GestureViewModel : ViewModel() {
     fun setLookingAtTarget(targetId: String?, isLooking: Boolean) {
         if (currentTargetId != targetId) {
             if (targetId != null) {
-                Log.d("GestureViewModel", "Looking at: $targetId - Slight head tilt (8°+) to activate!")
+                Log.d("GestureViewModel", "Looking at: $targetId")
             } else {
                 Log.d("GestureViewModel", "Stopped looking")
             }
@@ -90,15 +121,31 @@ class GestureViewModel : ViewModel() {
         if (!isLooking) {
             isTiltInProgress = false
             tiltDetectionStartTime = 0L
+            _isTiltingLeft.value = false
+            _isTiltingRight.value = false
         }
     }
 
-    fun setHeadTiltCallback(callback: (String) -> Unit) {
-        headTiltCallback = callback
+    // For COMBINATION mode - any direction (original behavior)
+    fun setHeadTiltCallbackSimple(callback: (String) -> Unit) {
+        headTiltCallbackSimple = callback
+        directionalCallbacks.clear()
+    }
+
+    // For HEAD_TILT mode - register button with its direction
+    fun registerDirectionalCallback(buttonId: String, direction: TiltDirection, callback: () -> Unit) {
+        directionalCallbacks[buttonId] = Pair(direction, callback)
+        headTiltCallbackSimple = null
+        Log.d("GestureViewModel", "Registered $buttonId for $direction tilts")
+    }
+
+    fun unregisterDirectionalCallback(buttonId: String) {
+        directionalCallbacks.remove(buttonId)
     }
 
     fun clearCallbacks() {
-        headTiltCallback = null
+        headTiltCallbackSimple = null
+        directionalCallbacks.clear()
         isLookingAtTarget = false
         currentTargetId = null
         isTiltInProgress = false
@@ -106,5 +153,7 @@ class GestureViewModel : ViewModel() {
         lastTiltTime = 0L
         baselineRoll = null
         rollHistory.clear()
+        _isTiltingLeft.value = false
+        _isTiltingRight.value = false
     }
 }

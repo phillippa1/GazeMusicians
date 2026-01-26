@@ -85,7 +85,7 @@ fun DwellButton(
             )
         }
 
-        // Why did I put this in gesture button too?
+
         if (isDwelling && dwellProgress > 0f) {
             CircularProgressIndicator(
                 progress = dwellProgress,

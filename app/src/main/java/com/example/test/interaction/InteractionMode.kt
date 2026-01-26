@@ -1,9 +1,10 @@
 package com.example.test.interaction
 
 enum class InteractionMode {
-    TOUCH,
-    GESTURE,
     DWELL,
-
-    PURSUITS
+    HEAD_TILT,
+    COMBINATION,
+    GESTURE,
+    PURSUITS,
+    TOUCH
 }
