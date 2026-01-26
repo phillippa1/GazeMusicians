@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.test.InterFontFamily
 import com.example.test.gaze.GazeViewModel
-import com.example.test.gaze.GestureViewModel
 import android.util.Log
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -48,11 +47,8 @@ fun GestureButton(
     val isDwelling = interactionViewModel.dwellingOn == buttonId
     val dwellProgress = interactionViewModel.dwellProgress
 
-    var isLookingAtThis by remember { mutableStateOf(false) }
-    var gazeStartTime by remember { mutableStateOf(0L) }
-
-    // Activation delay - just look for a brief moment
-    val activationDelay = 500L // 500ms of looking activates it
+    var lastTriggerTime by remember { mutableStateOf(0L) }
+    val cooldownMs = 500L // 500ms cooldown between activations
 
     // Size of hitbox
     val expansionPx = 300f
@@ -82,41 +78,29 @@ fun GestureButton(
         }
     }
 
-    // Handle GESTURE mode - just look to activate
-    LaunchedEffect(isGazeInside, interactionViewModel.interactionMode) {
+    // Handle GESTURE mode - instant activation when you look at it
+    LaunchedEffect(isGazeInside, interactionViewModel.interactionMode, enabled) {
         if (interactionViewModel.interactionMode == InteractionMode.GESTURE) {
             if (isGazeInside && enabled) {
-                if (!isLookingAtThis) {
-                    isLookingAtThis = true
-                    gazeStartTime = System.currentTimeMillis()
-                    Log.d("GestureButton", "Started looking at $buttonId - Keep looking to activate!")
-                }
+                val currentTime = System.currentTimeMillis()
+                val timeSinceLastTrigger = currentTime - lastTriggerTime
 
-                // Wait for activation delay
-                while (isGazeInside && enabled) {
-                    delay(50)
-                    val lookDuration = System.currentTimeMillis() - gazeStartTime
-                    if (lookDuration >= activationDelay) {
-                        Log.d("GestureButton", "Gaze activated $buttonId")
-                        onClick()
-                        isLookingAtThis = false
-                        break
-                    }
-                }
-            } else {
-                if (isLookingAtThis) {
-                    Log.d("GestureButton", "Stopped looking at $buttonId")
-                    isLookingAtThis = false
+                if (timeSinceLastTrigger >= cooldownMs) {
+                    Log.d("GestureButton", "Gaze instantly activated $buttonId")
+                    lastTriggerTime = currentTime
+                    onClick()
+
+                    // Small delay to prevent retriggering if still looking
+                    delay(100)
+                } else {
+                    Log.d("GestureButton", "Cooldown active for $buttonId, waiting ${cooldownMs - timeSinceLastTrigger}ms")
                 }
             }
         }
     }
 
-    // Visual feedback
+    // Visual feedback - just show if looking or not
     val showAsLooking = isGazeInside && interactionViewModel.interactionMode == InteractionMode.GESTURE
-    val lookProgress = if (showAsLooking && isLookingAtThis) {
-        ((System.currentTimeMillis() - gazeStartTime).toFloat() / activationDelay).coerceIn(0f, 1f)
-    } else 0f
 
     val borderColor = when {
         isDwelling -> Color.Blue
@@ -165,20 +149,7 @@ fun GestureButton(
             )
         }
 
-        // Show progress indicator when looking in GESTURE mode
-        if (showAsLooking && lookProgress > 0f) {
-            CircularProgressIndicator(
-                progress = lookProgress,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .width(50.dp)
-                    .height(50.dp),
-                color = Color.Green,
-                strokeWidth = 4.dp
-            )
-        }
-
-        // Show circular progress indicator when dwelling
+        // Show circular progress indicator when dwelling (for other modes)
         if (isDwelling && dwellProgress > 0f) {
             CircularProgressIndicator(
                 progress = dwellProgress,
