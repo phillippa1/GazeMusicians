@@ -23,7 +23,7 @@ class InteractionViewModel : ViewModel() {
     private var dwellJob: Job? = null
 
     // Make dwell duration accessible
-    val dwellDurationMs: Long = 1500L // 1.5 seconds
+    val dwellDurationMs: Long = 600L
 
     // Gesture state
     var gestureTriggered by mutableStateOf<String?>(null)
@@ -145,7 +145,7 @@ class InteractionViewModel : ViewModel() {
                         break
                     }
                 }
-                delay(16)
+                delay(18)
             }
         }
     }

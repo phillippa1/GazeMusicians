@@ -5,6 +5,5 @@ enum class InteractionMode {
     HEAD_TILT,
     COMBINATION,
     GESTURE,
-    PURSUITS,
     TOUCH
 }

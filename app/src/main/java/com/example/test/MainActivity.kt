@@ -78,9 +78,9 @@ class MainActivity : ComponentActivity() {
     private val _calibrationProgress = mutableStateOf(0f)
     private val _isCalibrating = mutableStateOf(false)
 
-    // Track face detection for recalibration
+
     private var faceMissingCount = 0
-    private val faceMissingThreshold = 60  // ~2 seconds at 30fps
+    private val faceMissingThreshold = 60  // About 2 seconds at 30fps
     private var needsRecalibration = false
 
     val calibrationPoint: State<Pair<Float, Float>?> = _calibrationPoint
@@ -151,15 +151,14 @@ class MainActivity : ComponentActivity() {
     private fun initGazeTracker() {
         val licenseKey = "dev_exzr35pwtjk5bd6effx07bg0kx6m6ibmai1w403u"
 
-        // OPTIMIZED for straight-on phone use
+        // Better for straight-on phone use
         val options = GazeTrackerOptions.Builder()
-            .setUseBlink(true)          // Enable blink detection (not used for gesture now, but keep enabled)
-            .setUseGazeFilter(true)     // Smooths jittery gaze (helps with straight-on angle!)
-            .setUseUserStatus(false)    // Disable user status (not needed)
+            .setUseBlink(true)
+            .setUseGazeFilter(true)
+            .setUseUserStatus(false)
             .build()
 
         GazeTracker.initGazeTracker(
-
             applicationContext,
             licenseKey,
             initializationCallback,
@@ -190,8 +189,8 @@ class MainActivity : ComponentActivity() {
             val height = display.height.toFloat()
 
             gazeTracker?.startCalibration(
-                CalibrationModeType.FIVE_POINT,  // Use 5-point calibration
-                AccuracyCriteria.LOW,  // More forgiving for straight-on phone angle
+                CalibrationModeType.FIVE_POINT,
+                AccuracyCriteria.LOW,
                 margin, margin, width - margin, height - margin
             )
         }
@@ -240,7 +239,6 @@ class MainActivity : ComponentActivity() {
         ) {
             gazeViewModel.updateGaze(gazeInfo.x, gazeInfo.y)
 
-            // Track head tilts - pass roll (left/right tilt) from face info
             gestureViewModel.updateHeadPose(
                 roll = faceInfo.roll,
                 timestamp = timestamp
@@ -261,8 +259,8 @@ class MainActivity : ComponentActivity() {
 
         gazeTracker?.stopCalibration()
         gazeTracker?.startCalibration(
-            CalibrationModeType.FIVE_POINT,  // Use 5-point calibration
-            AccuracyCriteria.LOW, // More forgiving for straight-on phone angle
+            CalibrationModeType.FIVE_POINT,
+            AccuracyCriteria.LOW,
             margin, margin, width - margin, height - margin
         )
     }
@@ -356,10 +354,10 @@ fun RecalibrateButton(onRecalibrate: () -> Unit) {
             .width(250.dp)
             .height(60.dp),
         shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(2.dp, Color(0xFF1976D2)), // Blue border
+        border = BorderStroke(2.dp, Color(0xFF1976D2)),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = Color(0xFFE3F2FD), // Light blue background
-            contentColor = Color(0xFF1976D2) // Blue text
+            containerColor = Color(0xFFE3F2FD),
+            contentColor = Color(0xFF1976D2)
         )
     ) {
         Text(
@@ -414,17 +412,14 @@ fun SongButton(songName: String, onClick: () -> Unit) {
 fun InteractionModeSwitcher(interactionViewModel: InteractionViewModel) {
     val currentMode = interactionViewModel.interactionMode
 
-    // Map of internal mode names to display names
     val displayNames = mapOf(
         InteractionMode.DWELL to "DWELL",
         InteractionMode.HEAD_TILT to "HEAD TILT",
         InteractionMode.COMBINATION to "COMBINATION",
         InteractionMode.GESTURE to "GESTURE",
-        InteractionMode.PURSUITS to "PURSUITS",
         InteractionMode.TOUCH to "TOUCH"
     )
 
-    // Horizontal view for all buttons
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
@@ -443,7 +438,7 @@ fun InteractionModeSwitcher(interactionViewModel: InteractionViewModel) {
             ) {
                 Text(
                     text = displayNames[mode] ?: mode.name,
-                    fontSize = 12.sp // Slightly smaller to fit "COMBINATION"
+                    fontSize = 12.sp
                 )
             }
         }

@@ -37,9 +37,6 @@ import com.example.test.interaction.GestureDirection
 import com.example.test.interaction.InteractionViewModel
 import com.example.test.interaction.InteractionMode
 import com.example.test.interaction.DwellButton
-import com.example.test.interaction.PursuitsButton
-import com.example.test.interaction.PursuitsDirection
-import android.util.Log
 import com.example.test.interaction.CombinationButton
 import com.example.test.interaction.HeadTiltButton
 
@@ -68,22 +65,7 @@ fun MusicPage(
 
         // Previous button at the top now
         when (currentMode) {
-            InteractionMode.PURSUITS -> {
-                PursuitsButton(
-                    text = "Previous",
-                    buttonId = "previous",
-                    direction = PursuitsDirection.UP,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .fillMaxWidth()
-                        .height(140.dp)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    enabled = hasPrevious,
-                    gazeViewModel = gazeViewModel,
-                    interactionViewModel = interactionViewModel,
-                    onClick = { if (currentPage > 1) currentPage-- }
-                )
-            }
+
             InteractionMode.HEAD_TILT -> {
                 HeadTiltButton(
                     text = "Previous",
@@ -280,25 +262,7 @@ fun MusicPage(
                 )
             }
         }
-
-        // Next button (at bottom)
         when (currentMode) {
-            InteractionMode.PURSUITS -> {
-                PursuitsButton(
-                    text = "Next",
-                    buttonId = "next",
-                    direction = PursuitsDirection.DOWN,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(140.dp)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    enabled = hasNext,
-                    gazeViewModel = gazeViewModel,
-                    interactionViewModel = interactionViewModel,
-                    onClick = { if (currentPage < MAX_PAGES_PER_SONG) currentPage++ }
-                )
-            }
             InteractionMode.HEAD_TILT -> {
                 HeadTiltButton(
                     text = "Next",

@@ -46,32 +46,35 @@ fun HeadTiltButton(
     val isDwelling = interactionViewModel.dwellingOn == buttonId
     val dwellProgress = interactionViewModel.dwellProgress
 
-    // For HEAD_TILT mode, register this button with its direction
-    LaunchedEffect(interactionViewModel.interactionMode, enabled, buttonId) {
-        if (interactionViewModel.interactionMode == InteractionMode.HEAD_TILT && enabled) {
+    // Using shared grace period from GestureViewModel now
+    val isInGracePeriod = gestureViewModel.isInGracePeriod
+
+    LaunchedEffect(interactionViewModel.interactionMode, enabled, buttonId, isInGracePeriod) {
+        if (interactionViewModel.interactionMode == InteractionMode.HEAD_TILT && enabled && !isInGracePeriod) {
             Log.d("HeadTiltButton", "$buttonId registered for $tiltDirection tilts")
 
-            // Register callback for this specific direction
             gestureViewModel.registerDirectionalCallback(buttonId, tiltDirection) {
                 Log.d("HeadTiltButton", "Head tilt $tiltDirection activated $buttonId")
                 onClick()
             }
         } else {
             gestureViewModel.unregisterDirectionalCallback(buttonId)
+            if (isInGracePeriod) {
+                Log.d("HeadTiltButton", "$buttonId unregistered during grace period")
+            }
         }
     }
 
-    // Check if currently tilting in the correct direction
     val isTilting = when (tiltDirection) {
         GestureViewModel.TiltDirection.LEFT -> gestureViewModel.isTiltingLeft
         GestureViewModel.TiltDirection.RIGHT -> gestureViewModel.isTiltingRight
     }
 
-    val showAsActive = interactionViewModel.interactionMode == InteractionMode.HEAD_TILT && enabled
+    val showAsActive = interactionViewModel.interactionMode == InteractionMode.HEAD_TILT && enabled && !isInGracePeriod
 
-    // Flash orange when tilting, otherwise show subtle hint
     val borderColor = when {
         isDwelling -> Color.Blue
+        isInGracePeriod -> Color(0xFF9E9E9E) // Gray during grace period
         showAsActive && isTilting -> Color(0xFFFF6F00) // Bright orange when tilting!
         showAsActive -> Color(0xFFBDBDBD) // Light gray when waiting
         else -> Color.Black
@@ -79,6 +82,7 @@ fun HeadTiltButton(
 
     val borderWidth = when {
         isDwelling -> 3.dp
+        isInGracePeriod -> 2.dp
         showAsActive && isTilting -> 6.dp // Thicker when tilting
         showAsActive -> 2.dp
         else -> 1.dp
@@ -86,6 +90,7 @@ fun HeadTiltButton(
 
     val backgroundColor = when {
         !enabled -> Color.Gray
+        isInGracePeriod -> Color(0xFFE0E0E0) // Darker gray during grace period
         showAsActive && isTilting -> Color(0xFFFFCC80) // Light orange when tilting
         showAsActive -> Color(0xFFF5F5F5) // Very light gray when waiting
         else -> Color.White
@@ -132,7 +137,7 @@ fun HeadTiltButton(
             }
         }
 
-        // Show circular progress indicator when dwelling
+
         if (isDwelling && dwellProgress > 0f) {
             CircularProgressIndicator(
                 progress = dwellProgress,
