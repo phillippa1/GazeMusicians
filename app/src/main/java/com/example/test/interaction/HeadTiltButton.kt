@@ -46,7 +46,6 @@ fun HeadTiltButton(
     val isDwelling = interactionViewModel.dwellingOn == buttonId
     val dwellProgress = interactionViewModel.dwellProgress
 
-    // Using shared grace period from GestureViewModel now
     val isInGracePeriod = gestureViewModel.isInGracePeriod
 
     LaunchedEffect(interactionViewModel.interactionMode, enabled, buttonId, isInGracePeriod) {
@@ -74,25 +73,25 @@ fun HeadTiltButton(
 
     val borderColor = when {
         isDwelling -> Color.Blue
-        isInGracePeriod -> Color(0xFF9E9E9E) // Gray during grace period
-        showAsActive && isTilting -> Color(0xFFFF6F00) // Bright orange when tilting!
-        showAsActive -> Color(0xFFBDBDBD) // Light gray when waiting
+        isInGracePeriod -> Color(0xFF9E9E9E)
+        showAsActive && isTilting -> Color(0xFFFF6F00)
+        showAsActive -> Color(0xFFBDBDBD)
         else -> Color.Black
     }
 
     val borderWidth = when {
         isDwelling -> 3.dp
         isInGracePeriod -> 2.dp
-        showAsActive && isTilting -> 6.dp // Thicker when tilting
+        showAsActive && isTilting -> 6.dp
         showAsActive -> 2.dp
         else -> 1.dp
     }
 
     val backgroundColor = when {
         !enabled -> Color.Gray
-        isInGracePeriod -> Color(0xFFE0E0E0) // Darker gray during grace period
-        showAsActive && isTilting -> Color(0xFFFFCC80) // Light orange when tilting
-        showAsActive -> Color(0xFFF5F5F5) // Very light gray when waiting
+        isInGracePeriod -> Color(0xFFE0E0E0)
+        showAsActive && isTilting -> Color(0xFFFFCC80)
+        showAsActive -> Color(0xFFF5F5F5)
         else -> Color.White
     }
 

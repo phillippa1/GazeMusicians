@@ -22,20 +22,20 @@ class InteractionViewModel : ViewModel() {
         private set
     private var dwellJob: Job? = null
 
-    // Make dwell duration accessible
+    // Makes dwell duration accessible
     val dwellDurationMs: Long = 600L
 
     // Gesture state
     var gestureTriggered by mutableStateOf<String?>(null)
         private set
 
-    // Track which button is currently being gazed at (for gesture mode)
+    // Track which button is currently being gazed at
     var currentGazeTarget by mutableStateOf<String?>(null)
         private set
     var currentGazeDirection by mutableStateOf<GestureDirection?>(null)
         private set
 
-    // Pursuit state
+
     var activePursuitButton by mutableStateOf<String?>(null)
         private set
 
@@ -62,7 +62,6 @@ class InteractionViewModel : ViewModel() {
                 onComplete()
                 cancelDwell()
             } catch (e: Exception) {
-                // ignore
             }
         }
     }
@@ -74,12 +73,10 @@ class InteractionViewModel : ViewModel() {
         dwellProgress = 0f
     }
 
-    // New helper to update progress from DwellButton
     fun updateDwellProgress(progress: Float) {
         dwellProgress = progress.coerceIn(0f, 1f)
     }
 
-    // Gesture methods...
     fun setGazeTarget(buttonId: String, direction: GestureDirection) {
         currentGazeTarget = buttonId
         currentGazeDirection = direction
@@ -98,7 +95,6 @@ class InteractionViewModel : ViewModel() {
         gestureTriggered = null
     }
 
-    // Pursuit methods
     fun startPursuit(buttonId: String): Boolean {
         if (activePursuitButton == null) {
             activePursuitButton = buttonId
@@ -108,7 +104,6 @@ class InteractionViewModel : ViewModel() {
     }
 
     fun startOrResumeDwell(buttonId: String, onComplete: () -> Unit) {
-        // Start dwell if not already dwelling
         if (dwellingOn != buttonId) {
             cancelDwell()
             dwellingOn = buttonId
@@ -125,17 +120,13 @@ class InteractionViewModel : ViewModel() {
             while (true) {
                 val now = System.currentTimeMillis()
 
-                // Pause if gaze is outside bounds
                 if (!isGazeOnButton(buttonId)) {
                     val elapsedSinceLeave = now - lastGazeTime
                     if (elapsedSinceLeave > gracePeriod) {
-                        // Grace expired, reset progress
                         cancelDwell()
                         break
                     }
-                    // Otherwise, pause progress (do not increment)
                 } else {
-                    // Resume dwell progress
                     lastGazeTime = now
                     dwellProgress = ((now - startTime).toFloat() / dwellDurationMs).coerceIn(0f, 1f)
 
@@ -150,7 +141,6 @@ class InteractionViewModel : ViewModel() {
         }
     }
 
-    // Helper to check if gaze is on button (to be set from DwellButton)
     private val gazeOnButtonMap = mutableMapOf<String, Boolean>()
     fun setGazeOnButton(buttonId: String, onButton: Boolean) {
         gazeOnButtonMap[buttonId] = onButton

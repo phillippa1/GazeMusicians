@@ -149,9 +149,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initGazeTracker() {
-        val licenseKey = "dev_exzr35pwtjk5bd6effx07bg0kx6m6ibmai1w403u"
+        val licenseKey = "dev_hlbkr86kk4tkm9g02h0q1sae6o19r72bor8k9wza"
 
-        // Better for straight-on phone use
+        // Better for straight-on phone use with this
         val options = GazeTrackerOptions.Builder()
             .setUseBlink(true)
             .setUseGazeFilter(true)

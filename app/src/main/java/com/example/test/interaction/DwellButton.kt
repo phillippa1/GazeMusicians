@@ -62,7 +62,7 @@ fun DwellButton(
         OutlinedButton(
             onClick = onClick,
             modifier = Modifier
-                .matchParentSize()  // Changed from .width(160.dp).height(80.dp)`
+                .matchParentSize()
                 .onGloballyPositioned { buttonBounds = it.boundsInWindow() },
             shape = RoundedCornerShape(20.dp),
             border = BorderStroke(
@@ -80,7 +80,7 @@ fun DwellButton(
                 style = TextStyle(
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 24.sp  // Text size- might need to change when you change the buttons sizes
+                    fontSize = 24.sp
                 )
             )
         }

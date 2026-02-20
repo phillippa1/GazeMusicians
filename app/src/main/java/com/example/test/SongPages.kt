@@ -63,14 +63,13 @@ fun MusicPage(
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // Previous button at the top now
         when (currentMode) {
 
             InteractionMode.HEAD_TILT -> {
                 HeadTiltButton(
                     text = "Previous",
                     buttonId = "previous",
-                    tiltDirection = GestureViewModel.TiltDirection.LEFT, // Tilt LEFT for Previous
+                    tiltDirection = GestureViewModel.TiltDirection.LEFT,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .fillMaxWidth()
@@ -139,7 +138,6 @@ fun MusicPage(
                 .fillMaxHeight(0.7f),
             contentAlignment = Alignment.Center
         ) {
-            // Music sheet for song one
             when (songNumber) {
                 1 -> {
                     val imageResource = when (currentPage) {
@@ -158,7 +156,7 @@ fun MusicPage(
                 }
                 2 -> {
                     val imageResource = when (currentPage) {
-                        1 -> R.drawable.song2_page2
+                        1 -> R.drawable.song2_page1
                         2 -> R.drawable.song2_page2
                         3 -> R.drawable.song2_page3
                         else -> R.drawable.song2_page1
@@ -217,7 +215,6 @@ fun MusicPage(
                     )
                 }
                 else -> {
-                    // For other songs, show placeholder for now
                     Surface(
                         color = Color.LightGray,
                         modifier = Modifier
@@ -238,17 +235,16 @@ fun MusicPage(
                 }
             }
 
-            // Large invisible back button centered over the music
             OutlinedButton(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
-                    .fillMaxWidth(0.6f)  // 60% of screen width
-                    .fillMaxHeight(0.5f), // 50% of center area height, might need to change this, see how it is when you use it
+                    .fillMaxWidth(0.6f)
+                    .fillMaxHeight(0.5f),
                 shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(0.dp, Color.Transparent), // Invisible border
+                border = BorderStroke(0.dp, Color.Transparent),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color.Transparent, // Invisible background
-                    contentColor = Color.Transparent    // Invisible text
+                    containerColor = Color.Transparent,
+                    contentColor = Color.Transparent
                 )
             ) {
                 Text(
@@ -257,7 +253,7 @@ fun MusicPage(
                         fontFamily = InterFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 28.sp,
-                        color = Color.Transparent // Invisible text
+                        color = Color.Transparent
                     )
                 )
             }

@@ -8,14 +8,12 @@ import android.util.Log
 import kotlin.math.abs
 
 class GestureViewModel : ViewModel() {
-    // Shared state
+
     private var isLookingAtTarget = false
     private var currentTargetId: String? = null
 
-    // Head tilt tracking
     private var headTiltCallbackSimple: ((String) -> Unit)? = null
 
-    // Map of buttonId to (direction, callback) for HEAD_TILT mode
     private val directionalCallbacks = mutableMapOf<String, Pair<TiltDirection, () -> Unit>>()
 
     private var baselineRoll: Float? = null
@@ -30,7 +28,7 @@ class GestureViewModel : ViewModel() {
     private val rollHistory = mutableListOf<Float>()
 
     private var headTiltGracePeriodEnd = 0L
-    val headTiltGracePeriodMs = 1000L // 1 second
+    val headTiltGracePeriodMs = 1000L
 
     private val _isTiltingLeft = mutableStateOf(false)
     private val _isTiltingRight = mutableStateOf(false)
@@ -75,7 +73,7 @@ class GestureViewModel : ViewModel() {
         _isTiltingLeft.value = tiltAmount > tiltThreshold
         _isTiltingRight.value = tiltAmount < -tiltThreshold
 
-        // Tilt start
+
         if (absTiltAmount >= tiltThreshold && !isTiltInProgress) {
             isTiltInProgress = true
             tiltDetectionStartTime = timestamp
@@ -83,7 +81,7 @@ class GestureViewModel : ViewModel() {
             Log.d("GestureViewModel", "Head tilt started: ${String.format("%.1f", tiltAmount)}° (${direction})")
         }
 
-        // Detect tilt end (return to neutral)
+
         if (absTiltAmount < tiltThreshold && isTiltInProgress) {
             val tiltDuration = timestamp - tiltDetectionStartTime
             isTiltInProgress = false

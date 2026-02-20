@@ -49,7 +49,6 @@ fun CombinationButton(
 
     var isLookingAtThis by remember { mutableStateOf(false) }
 
-    // Large hitbox for easy targeting
     val expansionPx = 300f
 
     val expandedBounds = remember(buttonBounds) {
@@ -63,7 +62,6 @@ fun CombinationButton(
         }
     }
 
-    // Check if gaze is inside bounds
     val isGazeInside = remember(gazePoint, expandedBounds, buttonBounds, interactionViewModel.interactionMode) {
         if (gazePoint == null || buttonBounds == null || !enabled) {
             false
@@ -77,7 +75,6 @@ fun CombinationButton(
         }
     }
 
-    // Handle COMBINATION mode - look AND tilt head (any direction)
     LaunchedEffect(isGazeInside, interactionViewModel.interactionMode) {
         val wasLookingAtThis = isLookingAtThis
         isLookingAtThis = isGazeInside
@@ -89,7 +86,6 @@ fun CombinationButton(
                 }
                 gestureViewModel.setLookingAtTarget(buttonId, true)
 
-                // Setup head tilt callback - accepts ANY direction (original behavior)
                 gestureViewModel.setHeadTiltCallbackSimple { targetId ->
                     if (targetId == buttonId) {
                         Log.d("CombinationButton", "Head tilt activated $buttonId")
@@ -105,12 +101,11 @@ fun CombinationButton(
         }
     }
 
-    // Visual feedback
     val showAsLooking = isGazeInside && interactionViewModel.interactionMode == InteractionMode.COMBINATION
 
     val borderColor = when {
         isDwelling -> Color.Blue
-        showAsLooking -> Color(0xFFFF9800) // Orange - ready for head tilt
+        showAsLooking -> Color(0xFFFF9800)
         else -> Color.Black
     }
 
@@ -122,7 +117,7 @@ fun CombinationButton(
 
     val backgroundColor = when {
         !enabled -> Color.Gray
-        showAsLooking -> Color(0xFFFFE0B2) // Light orange
+        showAsLooking -> Color(0xFFFFE0B2)
         else -> Color.White
     }
 
@@ -155,7 +150,6 @@ fun CombinationButton(
             )
         }
 
-        // Show circular progress indicator when dwelling
         if (isDwelling && dwellProgress > 0f) {
             CircularProgressIndicator(
                 progress = dwellProgress,

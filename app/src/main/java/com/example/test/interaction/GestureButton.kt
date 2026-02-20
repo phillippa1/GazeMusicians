@@ -48,9 +48,8 @@ fun GestureButton(
     val dwellProgress = interactionViewModel.dwellProgress
 
     var lastTriggerTime by remember { mutableStateOf(0L) }
-    val cooldownMs = 500L // 500ms cooldown between activations
+    val cooldownMs = 500L
 
-    // Size of hitbox
     val expansionPx = 300f
 
     val expandedBounds = remember(buttonBounds) {
@@ -64,7 +63,6 @@ fun GestureButton(
         }
     }
 
-    // Check if gaze is inside bounds
     val isGazeInside = remember(gazePoint, expandedBounds, buttonBounds, interactionViewModel.interactionMode) {
         if (gazePoint == null || buttonBounds == null || !enabled) {
             false
@@ -78,7 +76,6 @@ fun GestureButton(
         }
     }
 
-    // Handle GESTURE mode - instant activation when you look at it
     LaunchedEffect(isGazeInside, interactionViewModel.interactionMode, enabled) {
         if (interactionViewModel.interactionMode == InteractionMode.GESTURE) {
             if (isGazeInside && enabled) {
@@ -90,7 +87,6 @@ fun GestureButton(
                     lastTriggerTime = currentTime
                     onClick()
 
-                    // Small delay to prevent retriggering if still looking
                     delay(100)
                 } else {
                     Log.d("GestureButton", "Cooldown active for $buttonId, waiting ${cooldownMs - timeSinceLastTrigger}ms")
@@ -99,12 +95,11 @@ fun GestureButton(
         }
     }
 
-    // Visual feedback - just show if looking or not
     val showAsLooking = isGazeInside && interactionViewModel.interactionMode == InteractionMode.GESTURE
 
     val borderColor = when {
         isDwelling -> Color.Blue
-        showAsLooking -> Color(0xFF4CAF50) // Green - looking
+        showAsLooking -> Color(0xFF4CAF50)
         else -> Color.Black
     }
 
@@ -116,7 +111,7 @@ fun GestureButton(
 
     val backgroundColor = when {
         !enabled -> Color.Gray
-        showAsLooking -> Color(0xFFC8E6C9) // Light green
+        showAsLooking -> Color(0xFFC8E6C9)
         else -> Color.White
     }
 
@@ -149,7 +144,6 @@ fun GestureButton(
             )
         }
 
-        // Show circular progress indicator when dwelling (for other modes)
         if (isDwelling && dwellProgress > 0f) {
             CircularProgressIndicator(
                 progress = dwellProgress,

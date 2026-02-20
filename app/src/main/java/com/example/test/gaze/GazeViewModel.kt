@@ -14,10 +14,8 @@ class GazeViewModel : ViewModel() {
     private var frameCount = 0
 
     fun updateGaze(x: Float, y: Float) {
-        // Use RAW coordinates for now (no filter)
         gazePoint = PointF(x, y)
 
-        // Debug logging every 30 frames
         frameCount++
         if (frameCount % 30 == 0) {
             Log.d("GazeViewModel", "Gaze updated: ($x, $y)")
