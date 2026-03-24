@@ -149,7 +149,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initGazeTracker() {
-        val licenseKey = "dev_hlbkr86kk4tkm9g02h0q1sae6o19r72bor8k9wza"
+        val licenseKey = "dev_txjw9pleed8kd9dozo4dtf274sitbqqt9cnlvl15"
 
         // Better for straight-on phone use with this
         val options = GazeTrackerOptions.Builder()
@@ -175,13 +175,13 @@ class MainActivity : ComponentActivity() {
             gazeTracker?.startTracking()
             Log.d("Eyedid", "Init success, tracking started")
         } else {
-            Log.e("Eyedid", "Initialization failed: $error")
+            Log.e("Eyedid", "Initialisation failed: $error")
         }
     }
 
     private val statusCallback = object : StatusCallback {
         override fun onStarted() {
-            Log.d("Eyedid", "Tracking started, starting calibration...")
+            Log.d("Eyedid", "Tracking started, starting calibration")
 
             val margin = 100f
             val display = windowManager.defaultDisplay
