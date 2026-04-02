@@ -42,3 +42,31 @@ As the Eyedid licence key expires after one month, this guide explains how to ob
 6. Generate the APK.
 
 ---
+
+## Running on an Android Device
+
+To run the application on your Android phone:
+
+### 1. Enable Developer Mode
+1. On your Android phone, go to **Settings > About Phone**
+2. Tap **Build Number** seven times until you see "You are now a developer"
+3. Go back to **Settings > Developer Options**
+4. Enable **USB Debugging**
+
+### 2. Connect Your Phone
+1. Connect your phone to your computer via a USB-C cable
+2. On your phone, when prompted, select **"Allow USB Debugging"** and tap OK
+3. If asked for the connection type, select **"File Transfer"** or **"MTP"**
+
+### 3. Run the Application
+1. Open the project in Android Studio
+2. Wait for Gradle to finish syncing
+3. In the toolbar at the top, you should see your device appear in the 
+   device dropdown 
+4. Press the **Run** button (green play icon)
+5. The app will build and install automatically on your phone
+
+### Troubleshooting
+- If your device does not appear, try unplugging and replugging the cable
+- Make sure USB Debugging is enabled
+- Some phones require you to unlock the screen before the device is detected
